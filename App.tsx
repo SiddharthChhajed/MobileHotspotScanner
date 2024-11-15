@@ -1,118 +1,51 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+// App.tsx
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, FlatList, Button, Text, View, StyleSheet } from 'react-native';
+import { NetworkInfo } from 'react-native-network-info';
+import networkScanner, { ConnectedDevice } from './services/networkScanner';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const App: React.FC = () => {
+  const [deviceIP, setDeviceIP] = useState<string>('');
+  const [connectedDevices, setConnectedDevices] = useState<ConnectedDevice[]>([]);
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  useEffect(() => {
+    // Get the device's IP address when the app loads
+    NetworkInfo.getIPV4Address().then((ip: string | null) => {
+      setDeviceIP(ip as string);
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+    });
+  }, []);
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const scanForDevices = async () => {
+    const devices = await networkScanner();
+    setConnectedDevices(devices);
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.header}>Mobile Hotspot Device Scanner</Text>
+      <Text style={styles.deviceIP}>Your IP: {deviceIP}</Text>
+      <Button title="Scan for Connected Devices" onPress={scanForDevices} />
+      <FlatList
+        data={connectedDevices}
+        keyExtractor={(item) => item.ip}
+        renderItem={({ item }) => (
+          <View style={styles.deviceContainer}>
+            <Text style={styles.deviceText}>IP: {item.ip}</Text>
+            {item.deviceName && <Text style={styles.deviceText}>Name: {item.deviceName}</Text>}
+          </View>
+        )}
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
+  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 10 },
+  deviceIP: { fontSize: 18, marginBottom: 20 },
+  deviceContainer: { padding: 10, borderBottomWidth: 1, borderBottomColor: '#ccc' },
+  deviceText: { fontSize: 16 },
 });
 
 export default App;

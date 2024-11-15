@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "react": "18.3.1",
-    "react-native": "0.76.1"
+    "react-native": "0.76.1",
+    "react-native-network-info": "^5.2.1",
+    "react-native-ping": "^1.2.8"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
